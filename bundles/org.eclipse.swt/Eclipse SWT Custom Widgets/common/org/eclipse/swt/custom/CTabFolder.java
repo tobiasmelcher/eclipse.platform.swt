@@ -3829,8 +3829,8 @@ boolean updateItems() {
 }
 
 boolean updateItems (int showIndex) {
-	final boolean changed[] = new boolean[] {false};
-	GC.drawOn(this, gc -> {
+	boolean changed = false;
+	try(var gc = GC.create(this)) {
 		if (!single && !mru && showIndex != -1) {
 			// make sure selected item will be showing
 			int firstIndex = showIndex;
@@ -3893,31 +3893,31 @@ boolean updateItems (int showIndex) {
 		}
 
 		boolean oldShowChevron = showChevron;
-		changed[0] = setItemSize(gc);
+		changed = setItemSize(gc);
 		updateButtons();
 		boolean chevronChanged = showChevron != oldShowChevron;
 		if (chevronChanged) {
 			if (updateTabHeight(false)) {
 				// Tab height has changed. Item sizes have to be set again.
-				changed[0] |= setItemSize(gc);
+				changed |= setItemSize(gc);
 			}
 		}
-		changed[0] |= setItemLocation(gc);
+		changed |= setItemLocation(gc);
 		setButtonBounds();
-		changed[0] |= chevronChanged;
-		if (changed[0] && getToolTipText() != null) {
+		changed |= chevronChanged;
+		if (changed && getToolTipText() != null) {
 			Point pt = getDisplay().getCursorLocation();
 			pt = toControl(pt);
 			_setToolTipText(pt.x, pt.y);
 		}
-	});
-	return changed[0];
+	}
+	return changed;
 }
 boolean updateTabHeight(boolean force){
 	int oldHeight = tabHeight;
-	GC.drawOn(this, gc ->{
+	try(var gc = GC.create(this)) {
 		tabHeight = renderer.computeSize(CTabFolderRenderer.PART_HEADER, SWT.NONE, gc, SWT.DEFAULT, SWT.DEFAULT).y;
-	});
+	}
 	if (fixedTabHeight == SWT.DEFAULT && controls != null && controls.length > 0) {
 		for (int i = 0; i < controls.length; i++) {
 			if ((controlAlignments[i] & SWT.WRAP) == 0 && !controls[i].isDisposed() && controls[i].getVisible()) {
@@ -4003,7 +4003,9 @@ void updateBkImages(boolean colorChanged) {
 							bkImageBounds[i] = bounds;
 							if (controlBkImages[i] != null) controlBkImages[i].dispose();
 							controlBkImages[i] = new Image(control.getDisplay(), bounds);
-							GC.drawOn(controlBkImages[i], gc-> renderer.draw(CTabFolderRenderer.PART_BACKGROUND, 0, bounds, gc));
+							try(var gc = GC.create(controlBkImages[i])) {
+								renderer.draw(CTabFolderRenderer.PART_BACKGROUND, 0, bounds, gc);
+							}
 							control.setBackground(null);
 							control.setBackgroundImage(controlBkImages[i]);
 						}
