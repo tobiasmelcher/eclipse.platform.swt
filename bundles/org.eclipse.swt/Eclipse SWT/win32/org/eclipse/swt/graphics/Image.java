@@ -164,7 +164,9 @@ Image (Device device) {
  * as shown in the following example:
  * <pre>
  *    Image i = new Image(device, width, height);
- *    GC.drawOn(i, gc -> gc.drawRectangle(0, 0, 50, 50));
+ *    try (var gc = GC.create(i)) {
+ *      gc.drawRectangle(0, 0, 50, 50));
+ *    }
  * </pre>
  * <p>
  * Note: Some platforms may have a limitation on the size
@@ -418,7 +420,9 @@ public Image(Device device, Image srcImage, int flag) {
  * drawing operations, as shown in the following example:
  * <pre>
  *    Image i = new Image(device, boundsRectangle);
- *    GC.drawOn(i, gc -> gc.drawRectangle(0, 0, 50, 50));
+ *    try (var gc = GC.create(i)) {
+ *      gc.drawRectangle(0, 0, 50, 50);
+ *    }
  * </pre>
  * <p>
  * Note: Some platforms may have a limitation on the size
